@@ -1,3 +1,4 @@
+import '../styles/globals.css';
 export const metadata = {
   title: 'PaletteX – Where Artists and Collectors Connect',
   description: 'An online art marketplace for creative minds.',
