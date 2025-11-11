@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 
 export default function Home() {
@@ -13,111 +12,73 @@ export default function Home() {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (files) {
-      setFormData((prev) => ({ ...prev, images: Array.from(files) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    if (files) setFormData({ ...formData, images: files });
+    else setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Artwork submitted successfully! (demo only)");
+    const body = new FormData();
+    for (const key in formData) {
+      if (key === "images") {
+        for (let i = 0; i < formData.images.length; i++) {
+          body.append("images", formData.images[i]);
+        }
+      } else {
+        body.append(key, formData[key]);
+      }
+    }
+
+    const res = await fetch("/api/upload", { method: "POST", body });
+    if (res.ok) alert("Artwork submitted successfully!");
+    else alert("Error uploading artwork. Please try again.");
   };
 
   return (
-    <main
-      style={{
-        fontFamily: "Inter, Arial, sans-serif",
-        padding: "2rem",
-        maxWidth: "1000px",
-        margin: "0 auto",
-      }}
-    >
-      <h1 style={{ textAlign: "center" }}>🎨 Welcome to PaletteX</h1>
-      <p style={{ textAlign: "center", color: "#555" }}>
-        Where Artists and Collectors Connect
-      </p>
-
-      {/* Gallery Section */}
-      <section style={{ marginTop: "3rem" }}>
-        <h2>Featured Artworks</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1rem",
-            marginTop: "1rem",
-          }}
-        >
-          {["art1.jpg", "art2.jpg", "art3.jpg", "art4.jpg"].map((img, i) => (
-            <div
-              key={i}
-              style={{
-                backgroundColor: "#f9f9f9",
-                borderRadius: "8px",
-                overflow: "hidden",
-                boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-              }}
-            >
-              <img
-                src={`https://placehold.co/400x300?text=Artwork+${i + 1}`}
-                alt={`Artwork ${i + 1}`}
-                style={{ width: "100%", height: "auto" }}
-              />
-            </div>
-          ))}
-        </div>
+    <main style={{ fontFamily: "Poppins, sans-serif", padding: "2rem" }}>
+      <section style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <h1 style={{ fontSize: "3rem", color: "#6C63FF" }}>🎨 PaletteX</h1>
+        <p style={{ fontSize: "1.2rem", color: "#555" }}>
+          Where Artists and Collectors Connect
+        </p>
       </section>
 
-      {/* Upload Form */}
-      <section style={{ marginTop: "4rem" }}>
-        <h2>Upload Your Artwork</h2>
-      <form
-  action="/api/upload"
-  method="POST"
-  encType="multipart/form-data"
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-    marginTop: "1rem",
-  }}
->
+      <section>
+        <h2>Submit Your Artwork</h2>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            maxWidth: "500px",
           }}
         >
           <input
             type="text"
             name="name"
             placeholder="Your Name"
-            value={formData.name}
             onChange={handleChange}
             required
-            style={inputStyle}
           />
           <input
             type="email"
             name="email"
             placeholder="Your Email"
-            value={formData.email}
             onChange={handleChange}
             required
-            style={inputStyle}
-          />
-          <input
-            type="text"
-            name="price"
-            placeholder="Price Offer (e.g. $250)"
-            value={formData.price}
-            onChange={handleChange}
-            style={inputStyle}
           />
           <textarea
             name="message"
-            placeholder="Message about your artwork"
-            value={formData.message}
+            placeholder="Description or Message"
             onChange={handleChange}
-            style={{ ...inputStyle, height: "100px" }}
+            required
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Price Offer ($)"
+            onChange={handleChange}
           />
           <input
             type="file"
@@ -125,31 +86,54 @@ export default function Home() {
             multiple
             accept="image/*"
             onChange={handleChange}
-            style={inputStyle}
           />
           <button
             type="submit"
             style={{
-              padding: "0.8rem",
-              background: "#111",
+              backgroundColor: "#6C63FF",
               color: "#fff",
+              padding: "0.75rem",
               border: "none",
-              borderRadius: "6px",
+              borderRadius: "5px",
               cursor: "pointer",
-              fontWeight: "bold",
             }}
           >
-            Submit Artwork
+            Upload Artwork
           </button>
         </form>
+      </section>
+
+      <section style={{ marginTop: "4rem" }}>
+        <h2>Featured Artworks</h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "1rem",
+            marginTop: "1rem",
+          }}
+        >
+          {[
+            "/art1.jpg",
+            "/art2.jpg",
+            "/art3.jpg",
+            "/art4.jpg",
+            "/art5.jpg",
+          ].map((src, i) => (
+            <div
+              key={i}
+              style={{
+                border: "1px solid #ddd",
+                borderRadius: "10px",
+                overflow: "hidden",
+                background: "#fafafa",
+              }}
+            >
+              <img src={src} alt={`Artwork ${i}`} style={{ width: "100%" }} />
+            </div>
+          ))}
+        </div>
       </section>
     </main>
   );
 }
-
-const inputStyle = {
-  padding: "0.8rem",
-  border: "1px solid #ccc",
-  borderRadius: "6px",
-  fontSize: "1rem",
-};
