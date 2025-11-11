@@ -2,9 +2,9 @@ import nodemailer from "nodemailer";
 import formidable from "formidable";
 import { promises as fs } from "fs";
 
-export const config = {
-  api: { bodyParser: false },
-};
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const preferredRegion = "auto";
 
 export async function POST(req) {
   try {
