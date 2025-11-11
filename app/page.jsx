@@ -73,13 +73,17 @@ export default function Home() {
       {/* Upload Form */}
       <section style={{ marginTop: "4rem" }}>
         <h2>Upload Your Artwork</h2>
-        <form
-          onSubmit={handleSubmit}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            marginTop: "1rem",
+      <form
+  action="/api/upload"
+  method="POST"
+  encType="multipart/form-data"
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    marginTop: "1rem",
+  }}
+>
           }}
         >
           <input
