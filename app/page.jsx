@@ -1,3 +1,18 @@
+export default function Home() {
+  return (
+    <main>
+      <header>PaletteX – Where Artists and Collectors Connect</header>
+
+      <section className="gallery">
+        <img src="/art1.jpg" alt="Artwork 1" />
+        <img src="/art2.jpg" alt="Artwork 2" />
+        <img src="/art3.jpg" alt="Artwork 3" />
+      </section>
+
+      <footer>© 2025 PaletteX. All rights reserved.</footer>
+    </main>
+  );
+}
 "use client";
 import { useState } from "react";
 
