@@ -1,21 +1,18 @@
 import { NextResponse } from 'next/server';
-import formidable from 'formidable';
 import nodemailer from 'nodemailer';
-import fs from 'fs';
 
-export const dynamic = 'force-dynamic'; // ✅ required for API routes in Next 13+
+export const dynamic = 'force-dynamic'; // ensures API route runs dynamically
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const form = formidable({ multiples: true });
-    const data = await new Promise((resolve, reject) => {
-      form.parse(request.nextUrl ? request.body : request, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve({ fields, files });
-      });
-    });
+    const formData = await req.formData();
+    const name = formData.get('Name');
+    const email = formData.get('Email');
+    const message = formData.get('Message');
+    const price = formData.get('Price');
+    const files = formData.getAll('Images');
 
-    // Email setup
+    // Configure email transport
     const transporter = nodemailer.createTransport({
       service: 'Outlook',
       auth: {
@@ -24,29 +21,32 @@ export async function POST(request) {
       },
     });
 
-    const { Name, Email, Message, Price } = data.fields;
+    // Prepare attachments (if any)
+    const attachments = files.map((file) => ({
+      filename: file.name,
+      content: Buffer.from(await file.arrayBuffer()),
+    }));
 
+    // Email body
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
-      subject: `New PaletteX Art Submission from ${Name}`,
+      subject: `🎨 New PaletteX Art Submission from ${name}`,
       text: `
-Name: ${Name}
-Email: ${Email}
-Message: ${Message}
-Price Offer: ${Price}
+Name: ${name}
+Email: ${email}
+Message: ${message}
+Price Offer: ${price}
       `,
-      attachments: Object.values(data.files).flat().map((file) => ({
-        filename: file.originalFilename,
-        path: file.filepath,
-      })),
+      attachments,
     };
 
+    // Send email
     await transporter.sendMail(mailOptions);
 
-    return NextResponse.json({ success: true, message: 'Upload sent successfully!' });
+    return NextResponse.json({ success: true, message: 'Submission sent successfully!' });
   } catch (error) {
-    console.error('Upload failed:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    console.error('Error in upload API:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
