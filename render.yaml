@@ -1,0 +1,20 @@
+# Render configuration for PaletteX – Where Artists and Collectors Connect
+
+services:
+  - type: web
+    name: PaletteX
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    branch: main
+    region: oregon  # or "frankfurt" if closer to Europe/Nigeria users
+    envVars:
+      - key: EMAIL_USER
+        value: officialpalettex@outlook.com
+      - key: EMAIL_PASS
+        value: nndwgoxkjrhpdfks
+      - key: MONGODB_URI
+        value: mongodb+srv://hackwizofficial_db_user:Zw6jwlYp3U6kt6rr@palettex.tl6f5ig.mongodb.net/?appName=Palettex
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://palettex.onrender.com
