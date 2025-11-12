@@ -1,64 +1,52 @@
-import nodemailer from "nodemailer";
-import formidable from "formidable";
-import { promises as fs } from "fs";
+import { NextResponse } from 'next/server';
+import formidable from 'formidable';
+import nodemailer from 'nodemailer';
+import fs from 'fs';
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export const preferredRegion = "auto";
+export const dynamic = 'force-dynamic'; // ✅ required for API routes in Next 13+
 
-export async function POST(req) {
+export async function POST(request) {
   try {
     const form = formidable({ multiples: true });
-    const [fields, files] = await form.parse(req);
+    const data = await new Promise((resolve, reject) => {
+      form.parse(request.nextUrl ? request.body : request, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve({ fields, files });
+      });
+    });
 
-    const name = fields.name?.[0] || "Unknown Artist";
-    const email = fields.email?.[0] || "No email";
-    const message = fields.message?.[0] || "No message";
-    const price = fields.price?.[0] || "N/A";
-
-    // Read image files (base64)
-    const attachments = [];
-    if (files.images) {
-      const fileList = Array.isArray(files.images)
-        ? files.images
-        : [files.images];
-      for (const file of fileList) {
-        const fileContent = await fs.readFile(file.filepath);
-        attachments.push({
-          filename: file.originalFilename,
-          content: fileContent,
-        });
-      }
-    }
-
-    // Setup transporter (Outlook)
+    // Email setup
     const transporter = nodemailer.createTransport({
-      service: "Outlook",
+      service: 'Outlook',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Send the email
-    await transporter.sendMail({
-      from: `"PaletteX Upload" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: `🎨 New Artwork Upload from ${name}`,
-      html: `
-        <h2>New PaletteX Artwork Submission</h2>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Price Offer:</b> ${price}</p>
-        <p><b>Message:</b><br>${message}</p>
-      `,
-      attachments,
-    });
+    const { Name, Email, Message, Price } = data.fields;
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (err) {
-    console.error("Upload error:", err);
-    return new Response(JSON.stringify({ error: "Upload failed" }), {
-      status: 500,
-    });
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: `New PaletteX Art Submission from ${Name}`,
+      text: `
+Name: ${Name}
+Email: ${Email}
+Message: ${Message}
+Price Offer: ${Price}
+      `,
+      attachments: Object.values(data.files).flat().map((file) => ({
+        filename: file.originalFilename,
+        path: file.filepath,
+      })),
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return NextResponse.json({ success: true, message: 'Upload sent successfully!' });
+  } catch (error) {
+    console.error('Upload failed:', error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
+}
